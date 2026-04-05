@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Users, MapPin } from 'lucide-vue-next'
+import { Users, MapPin, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps<{
   room: {
@@ -14,22 +14,46 @@ const props = defineProps<{
 </script>
 
 <template>
-  <!-- Карточка переговорной комнаты с навигацией на страницу детали -->
-  <Card class="hover:border-primary/50 transition-colors cursor-pointer" @click="navigateTo(`/rooms/${room.id}`)">
-    <CardHeader>
-      <div class="flex items-center justify-between">
-        <CardTitle class="text-lg">{{ room.name }}</CardTitle>
-        <Badge v-if="room.requires_approval" variant="outline" class="text-xs">Требует подтверждения</Badge>
+  <!-- Строка комнаты — list view в стиле Notion -->
+  <NuxtLink :to="`/rooms/${room.id}`" class="block group">
+    <div class="flex items-center gap-4 px-4 py-3.5 rounded-xl border border-transparent hover:border-border hover:bg-secondary/50 transition-all duration-150">
+      <!-- Имя комнаты -->
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2.5">
+          <h3 class="font-semibold text-foreground truncate">{{ room.name }}</h3>
+          <Badge
+            v-if="room.requires_approval"
+            class="shrink-0 bg-amber-50 text-amber-700 border border-amber-200 text-[11px]"
+          >
+            Подтверждение
+          </Badge>
+        </div>
       </div>
-    </CardHeader>
-    <CardContent>
-      <div class="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-        <span class="flex items-center gap-1"><MapPin class="h-4 w-4" /> Этаж {{ room.floor }}</span>
-        <span class="flex items-center gap-1"><Users class="h-4 w-4" /> до {{ room.capacity }} чел.</span>
+
+      <!-- Мета: этаж + вместимость -->
+      <div class="hidden sm:flex items-center gap-4 text-sm text-muted-foreground shrink-0">
+        <span class="flex items-center gap-1.5">
+          <MapPin class="h-3.5 w-3.5" />
+          {{ room.floor }} эт.
+        </span>
+        <span class="flex items-center gap-1.5">
+          <Users class="h-3.5 w-3.5" />
+          {{ room.capacity }}
+        </span>
       </div>
-      <div class="flex flex-wrap gap-1">
-        <EquipmentBadge v-for="(val, key) in room.equipment" :key="key" v-show="val" :type="String(key)" />
+
+      <!-- Оборудование -->
+      <div class="hidden md:flex items-center gap-1.5 shrink-0">
+        <RoomEquipmentBadge
+          v-for="(val, key) in room.equipment"
+          :key="key"
+          v-show="val"
+          :type="String(key)"
+        />
       </div>
-    </CardContent>
-  </Card>
+
+      <!-- Стрелка перехода -->
+      <ChevronRight class="h-4 w-4 text-muted-foreground/40 group-hover:text-foreground/60 transition-colors shrink-0" />
+    </div>
+  </NuxtLink>
 </template>

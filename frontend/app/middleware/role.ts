@@ -5,9 +5,4 @@ export default defineNuxtRouteMiddleware((to) => {
   if (to.path.startsWith('/admin') && !store.isAdmin) {
     return navigateTo('/')
   }
-
-  // Страница менеджера
-  if (to.path === '/department' && !store.isManager && !store.isAdmin) {
-    return navigateTo('/')
-  }
 })

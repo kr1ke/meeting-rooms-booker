@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, rooms, bookings, users, departments, notifications, settings
+from app.routers import auth, rooms, bookings, users, notifications, settings, departments
 
 app = FastAPI(title="Booking API")
 
@@ -16,9 +16,9 @@ app.include_router(auth.router)
 app.include_router(rooms.router)
 app.include_router(bookings.router)
 app.include_router(users.router)
-app.include_router(departments.router)
 app.include_router(notifications.router)
 app.include_router(settings.router)
+app.include_router(departments.router)
 
 
 @app.get("/api/health")

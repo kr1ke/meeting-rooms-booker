@@ -1,5 +1,13 @@
 import uuid
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    role: str = "employee"
+    department_id: uuid.UUID | None = None
 
 
 class UserUpdate(BaseModel):

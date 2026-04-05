@@ -13,6 +13,19 @@ interface AvailabilitySlot {
   end_time: string
   is_available: boolean
   booking_title: string | null
+  booking_user_name: string | null
+}
+
+interface BookingBlock {
+  start_time: string
+  end_time: string
+  title: string
+  user_name: string
+}
+
+interface RoomDaySchedule {
+  slots: AvailabilitySlot[]
+  bookings: BookingBlock[]
 }
 
 export function useRooms() {
@@ -25,7 +38,7 @@ export function useRooms() {
   }
 
   async function fetchAvailability(roomId: string, date: string) {
-    return await $fetch<AvailabilitySlot[]>(`/api/rooms/${roomId}/availability`, {
+    return await $fetch<RoomDaySchedule>(`/api/rooms/${roomId}/availability`, {
       params: { date },
     })
   }
@@ -42,5 +55,14 @@ export function useRooms() {
     return await $fetch(`/api/rooms/${id}`, { method: 'DELETE' })
   }
 
-  return { fetchRooms, fetchRoom, fetchAvailability, createRoom, updateRoom, deleteRoom }
+  async function fetchSchedule(date: string) {
+    return await $fetch<{
+      room_id: string
+      room_name: string
+      floor: number
+      bookings: BookingBlock[]
+    }[]>('/api/rooms/schedule', { params: { date } })
+  }
+
+  return { fetchRooms, fetchRoom, fetchAvailability, fetchSchedule, createRoom, updateRoom, deleteRoom }
 }

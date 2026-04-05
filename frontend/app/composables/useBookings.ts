@@ -25,10 +25,6 @@ export function useBookings() {
     return await $fetch<Booking[]>('/api/bookings')
   }
 
-  async function fetchDepartmentBookings() {
-    return await $fetch<Booking[]>('/api/bookings/department')
-  }
-
   async function fetchAllBookings() {
     return await $fetch<Booking[]>('/api/bookings/all')
   }
@@ -50,7 +46,7 @@ export function useBookings() {
   }
 
   return {
-    fetchMyBookings, fetchDepartmentBookings, fetchAllBookings,
+    fetchMyBookings, fetchAllBookings,
     createBooking, cancelBooking, approveBooking, rejectBooking,
   }
 }

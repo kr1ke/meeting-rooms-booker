@@ -31,11 +31,12 @@ async def seed():
             role=UserRole.admin,
             department_id=dev.id,
         )
+        # Обычный сотрудник вместо менеджера
         manager = User(
-            email="manager@company.com",
-            password_hash=hash_password("manager123"),
-            name="Менеджер Разработки",
-            role=UserRole.manager,
+            email="maria@company.com",
+            password_hash=hash_password("user456"),
+            name="Мария Иванова",
+            role=UserRole.employee,
             department_id=dev.id,
         )
         employee = User(

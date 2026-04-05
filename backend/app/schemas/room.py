@@ -37,3 +37,18 @@ class AvailabilitySlot(BaseModel):
     end_time: time
     is_available: bool
     booking_title: str | None = None
+    booking_user_name: str | None = None
+
+
+class BookingBlock(BaseModel):
+    """Непрерывный блок занятости для визуализации на таймлайне"""
+    start_time: time
+    end_time: time
+    title: str
+    user_name: str
+
+
+class RoomDaySchedule(BaseModel):
+    """Расписание комнаты на день: слоты + реальные бронирования"""
+    slots: list[AvailabilitySlot]
+    bookings: list[BookingBlock]

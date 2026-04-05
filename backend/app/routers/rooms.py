@@ -9,7 +9,7 @@ from app.dependencies import get_db, get_current_user, require_role
 from app.models.room import Room
 from app.models.booking import Booking, BookingStatus
 from app.models.user import User, UserRole
-from app.schemas.room import RoomCreate, RoomUpdate, RoomResponse, AvailabilitySlot
+from app.schemas.room import RoomCreate, RoomUpdate, RoomResponse, AvailabilitySlot, BookingBlock, RoomDaySchedule
 
 router = APIRouter(prefix="/api/rooms", tags=["rooms"])
 
@@ -40,6 +40,54 @@ async def list_rooms(
     return rooms
 
 
+@router.get("/schedule")
+async def rooms_schedule(
+    date: date = Query(...),
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Расписание всех комнат на день — для дашборда"""
+    from sqlalchemy.orm import selectinload
+
+    rooms_result = await db.execute(
+        select(Room).where(Room.is_active == True).order_by(Room.floor, Room.name)
+    )
+    rooms = rooms_result.scalars().all()
+
+    bookings_result = await db.execute(
+        select(Booking)
+        .options(selectinload(Booking.user))
+        .where(
+            Booking.date == date,
+            Booking.status.in_([BookingStatus.confirmed, BookingStatus.pending]),
+        )
+    )
+    all_bookings = bookings_result.scalars().all()
+
+    by_room: dict[str, list] = {}
+    for b in all_bookings:
+        by_room.setdefault(str(b.room_id), []).append(b)
+
+    result = []
+    for room in rooms:
+        room_bookings = by_room.get(str(room.id), [])
+        result.append({
+            "room_id": str(room.id),
+            "room_name": room.name,
+            "floor": room.floor,
+            "bookings": [
+                {
+                    "start_time": str(b.start_time)[:5],
+                    "end_time": str(b.end_time)[:5],
+                    "title": b.title,
+                    "user_name": b.user.name if b.user else "—",
+                }
+                for b in sorted(room_bookings, key=lambda x: x.start_time)
+            ],
+        })
+    return result
+
+
 @router.get("/{room_id}", response_model=RoomResponse)
 async def get_room(
     room_id: uuid.UUID,
@@ -53,16 +101,20 @@ async def get_room(
     return room
 
 
-@router.get("/{room_id}/availability", response_model=list[AvailabilitySlot])
+@router.get("/{room_id}/availability", response_model=RoomDaySchedule)
 async def get_availability(
     room_id: uuid.UUID,
     date: date = Query(...),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    # Получить все активные брони на эту дату
+    from sqlalchemy.orm import selectinload
+    from datetime import time as t, timedelta, datetime as dt
+
+    # Получить все активные брони на эту дату с данными пользователя
     result = await db.execute(
         select(Booking)
+        .options(selectinload(Booking.user))
         .where(
             Booking.room_id == room_id,
             Booking.date == date,
@@ -72,9 +124,18 @@ async def get_availability(
     )
     bookings = result.scalars().all()
 
-    # Генерация слотов с 08:00 до 20:00 с шагом 30 минут
-    from datetime import time as t, timedelta, datetime as dt
+    # Блоки бронирований для визуализации на таймлайне
+    booking_blocks = [
+        BookingBlock(
+            start_time=b.start_time,
+            end_time=b.end_time,
+            title=b.title,
+            user_name=b.user.name if b.user else "—",
+        )
+        for b in bookings
+    ]
 
+    # Генерация 30-мин слотов с 08:00 до 20:00
     slots = []
     current = dt.combine(date, t(8, 0))
     end_of_day = dt.combine(date, t(20, 0))
@@ -83,7 +144,6 @@ async def get_availability(
         slot_start = current.time()
         slot_end = (current + timedelta(minutes=30)).time()
 
-        # Проверка пересечения с бронями
         booked = None
         for b in bookings:
             if b.start_time < slot_end and b.end_time > slot_start:
@@ -95,10 +155,11 @@ async def get_availability(
             end_time=slot_end,
             is_available=booked is None,
             booking_title=booked.title if booked else None,
+            booking_user_name=booked.user.name if booked and booked.user else None,
         ))
         current += timedelta(minutes=30)
 
-    return slots
+    return RoomDaySchedule(slots=slots, bookings=booking_blocks)
 
 
 @router.post("", response_model=RoomResponse, status_code=201)

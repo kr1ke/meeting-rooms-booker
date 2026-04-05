@@ -4,13 +4,13 @@ const emit = defineEmits<{
 }>()
 
 // Параметры фильтрации комнат
-const floor = ref<string>()
-const minCapacity = ref<string>()
+const floor = ref<string>('all')
+const minCapacity = ref<string>('all')
 
 function applyFilters() {
   emit('filter', {
-    floor: floor.value ? Number(floor.value) : undefined,
-    min_capacity: minCapacity.value ? Number(minCapacity.value) : undefined,
+    floor: floor.value !== 'all' ? Number(floor.value) : undefined,
+    min_capacity: minCapacity.value !== 'all' ? Number(minCapacity.value) : undefined,
   })
 }
 
@@ -25,7 +25,7 @@ watch([floor, minCapacity], applyFilters)
         <SelectValue placeholder="Этаж" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Все этажи</SelectItem>
+        <SelectItem value="all">Все этажи</SelectItem>
         <SelectItem v-for="f in [1, 2, 3]" :key="f" :value="String(f)">Этаж {{ f }}</SelectItem>
       </SelectContent>
     </Select>
@@ -35,7 +35,7 @@ watch([floor, minCapacity], applyFilters)
         <SelectValue placeholder="Вместимость" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">Любая</SelectItem>
+        <SelectItem value="all">Любая</SelectItem>
         <SelectItem value="4">от 4 человек</SelectItem>
         <SelectItem value="8">от 8 человек</SelectItem>
         <SelectItem value="12">от 12 человек</SelectItem>

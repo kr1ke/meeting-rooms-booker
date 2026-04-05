@@ -46,21 +46,6 @@ async def my_bookings(
     return [booking_to_response(b) for b in result.scalars().all()]
 
 
-@router.get("/department", response_model=list[BookingResponse])
-async def department_bookings(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.manager, UserRole.admin)),
-):
-    result = await db.execute(
-        select(Booking)
-        .join(User)
-        .options(selectinload(Booking.user), selectinload(Booking.room))
-        .where(User.department_id == current_user.department_id)
-        .order_by(Booking.date.desc(), Booking.start_time.desc())
-    )
-    return [booking_to_response(b) for b in result.scalars().all()]
-
-
 @router.get("/all", response_model=list[BookingResponse])
 async def all_bookings(
     db: AsyncSession = Depends(get_db),

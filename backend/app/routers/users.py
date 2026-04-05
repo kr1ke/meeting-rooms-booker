@@ -6,7 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.models.user import User, UserRole
-from app.schemas.user import UserUpdate, UserListResponse
+from app.schemas.user import UserCreate, UserUpdate, UserListResponse
+from app.services.auth import get_user_by_email
+from app.security import hash_password
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -18,6 +20,29 @@ async def list_users(
 ):
     result = await db.execute(select(User).order_by(User.name))
     return result.scalars().all()
+
+
+@router.post("", response_model=UserListResponse, status_code=201)
+async def create_user(
+    data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.admin)),
+):
+    existing = await get_user_by_email(db, data.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="Email уже зарегистрирован")
+
+    user = User(
+        email=data.email,
+        password_hash=hash_password(data.password),
+        name=data.name,
+        role=data.role,
+        department_id=data.department_id,
+    )
+    db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return user
 
 
 @router.patch("/{user_id}", response_model=UserListResponse)
