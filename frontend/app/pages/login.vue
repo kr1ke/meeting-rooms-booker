@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Страница входа в систему
 definePageMeta({ layout: 'auth' })
+useHead({ title: 'Вход' })
 
 const { login } = useAuth()
 const email = ref('')

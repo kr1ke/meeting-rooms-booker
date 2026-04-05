@@ -78,13 +78,13 @@ function formatDate(dateStr: string): string {
               <MapPin class="h-3.5 w-3.5 shrink-0 text-primary/60" />
               <span>{{ booking.room_name }}</span>
             </div>
-            <div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
               <CalendarDays class="h-3.5 w-3.5 shrink-0 text-primary/60" />
               <span>{{ formatDate(booking.date) }}</span>
               <span class="text-muted-foreground/40">|</span>
               <Clock class="h-3.5 w-3.5 shrink-0 text-primary/60" />
-              <span class="font-medium text-foreground/80">
-                {{ booking.start_time.slice(0, 5) }} &ndash; {{ booking.end_time.slice(0, 5) }}
+              <span class="font-medium text-foreground/80 whitespace-nowrap">
+                {{ booking.start_time.slice(0, 5) }}&ndash;{{ booking.end_time.slice(0, 5) }}
               </span>
             </div>
           </div>

@@ -124,17 +124,21 @@ function snap(mins: number): number {
   return Math.round(mins / SNAP_MINUTES) * SNAP_MINUTES
 }
 
-// Преобразовать позицию мыши в минуты
-function mouseToMinutes(e: MouseEvent): number {
+// Преобразовать позицию указателя (мышь или touch) в минуты
+function pointerToMinutes(clientX: number): number {
   if (!timelineRef.value) return TIMELINE_START
   const rect = timelineRef.value.getBoundingClientRect()
-  const x = e.clientX - rect.left
+  const x = clientX - rect.left
   const percent = x / rect.width
   const rawMins = TIMELINE_START + percent * TIMELINE_DURATION
   return snap(Math.max(TIMELINE_START, Math.min(TIMELINE_END, rawMins)))
 }
 
-// --- Drag-ресайз выделения ---
+function mouseToMinutes(e: MouseEvent): number {
+  return pointerToMinutes(e.clientX)
+}
+
+// --- Drag-ресайз выделения (мышь + touch) ---
 const dragging = ref<'start' | 'end' | null>(null)
 let justDragged = false
 
@@ -146,13 +150,18 @@ function startDrag(edge: 'start' | 'end', e: MouseEvent) {
   document.addEventListener('mouseup', stopDrag)
 }
 
-function onDrag(e: MouseEvent) {
-  if (!dragging.value || !timelineRef.value) return
-  const mins = mouseToMinutes(e)
+function startDragTouch(edge: 'start' | 'end', e: TouchEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  dragging.value = edge
+  document.addEventListener('touchmove', onDragTouch, { passive: false })
+  document.addEventListener('touchend', stopDragTouch)
+}
 
+function applyDrag(mins: number) {
+  if (!dragging.value) return
   if (dragging.value === 'start') {
     const endMins = toMinutes(props.endTime)
-    // Не позволяем старту пересечь конец (минимум 5 мин)
     if (mins < endMins - SNAP_MINUTES && !isTimeOccupied(mins)) {
       const freeStart = findFreeStart(endMins)
       emit('update:startTime', fromMinutes(Math.max(mins, freeStart)))
@@ -166,25 +175,54 @@ function onDrag(e: MouseEvent) {
   }
 }
 
+function onDrag(e: MouseEvent) {
+  if (!dragging.value || !timelineRef.value) return
+  applyDrag(mouseToMinutes(e))
+}
+
+function onDragTouch(e: TouchEvent) {
+  if (!dragging.value || !timelineRef.value || !e.touches[0]) return
+  e.preventDefault()
+  applyDrag(pointerToMinutes(e.touches[0].clientX))
+}
+
 function stopDrag() {
   dragging.value = null
   justDragged = true
-  // Сбросим флаг после всплытия click
   requestAnimationFrame(() => { justDragged = false })
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
 
+function stopDragTouch() {
+  dragging.value = null
+  justDragged = true
+  requestAnimationFrame(() => { justDragged = false })
+  document.removeEventListener('touchmove', onDragTouch)
+  document.removeEventListener('touchend', stopDragTouch)
+}
+
 onUnmounted(() => {
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('touchmove', onDragTouch)
+  document.removeEventListener('touchend', stopDragTouch)
 })
 
-// --- Клик по таймлайну ---
+// --- Клик / tap по таймлайну ---
 function handleTimelineClick(e: MouseEvent) {
-  // Не обрабатываем клик во время или сразу после drag
   if (dragging.value || justDragged) return
   const mins = mouseToMinutes(e)
+  applyTimelineSelect(mins)
+}
+
+function handleTimelineTap(e: TouchEvent) {
+  if (dragging.value || justDragged || !e.changedTouches[0]) return
+  const mins = pointerToMinutes(e.changedTouches[0].clientX)
+  applyTimelineSelect(mins)
+}
+
+function applyTimelineSelect(mins: number) {
   if (isTimeOccupied(mins)) return
 
   if (!props.startTime || (props.startTime && props.endTime)) {
@@ -208,7 +246,7 @@ function handleTimelineClick(e: MouseEvent) {
   }
 }
 
-// --- Hover-превью ---
+// --- Hover-превью (только десктоп) ---
 const hoverMinutes = ref<number | null>(null)
 
 function handleMouseMove(e: MouseEvent) {
@@ -249,9 +287,10 @@ const hoverTimeLabel = computed(() => {
     <!-- Основной таймлайн -->
     <div
       ref="timelineRef"
-      class="relative h-16 rounded-lg bg-muted/40 border border-border/60 overflow-hidden select-none"
+      class="relative h-14 sm:h-16 rounded-lg bg-muted/40 border border-border/60 overflow-hidden select-none touch-none"
       :class="dragging ? 'cursor-col-resize' : 'cursor-crosshair'"
       @click="handleTimelineClick"
+      @touchend.prevent="handleTimelineTap"
       @mousemove="handleMouseMove"
       @mouseleave="handleMouseLeave"
     >
@@ -295,19 +334,21 @@ const hoverTimeLabel = computed(() => {
         class="absolute top-0.5 bottom-0.5 rounded-md bg-primary/20 border-2 border-primary/60 z-20 pointer-events-none transition-all duration-75"
         :style="{ left: selection.left + '%', width: selection.width + '%' }"
       >
-        <!-- Левая drag-ручка -->
+        <!-- Левая drag-ручка (расширена для touch) -->
         <div
-          class="absolute -left-1.5 top-0 bottom-0 w-4 cursor-col-resize pointer-events-auto z-40 group"
+          class="absolute -left-3 sm:-left-1.5 top-0 bottom-0 w-8 sm:w-4 cursor-col-resize pointer-events-auto z-40 group"
           @mousedown="startDrag('start', $event)"
+          @touchstart.prevent="startDragTouch('start', $event)"
         >
-          <div class="absolute left-1.5 top-1 bottom-1 w-1.5 rounded-l-md bg-primary group-hover:bg-primary/80 transition-colors" />
+          <div class="absolute left-3 sm:left-1.5 top-1 bottom-1 w-1.5 rounded-l-md bg-primary group-hover:bg-primary/80 transition-colors" />
         </div>
-        <!-- Правая drag-ручка -->
+        <!-- Правая drag-ручка (расширена для touch) -->
         <div
-          class="absolute -right-1.5 top-0 bottom-0 w-4 cursor-col-resize pointer-events-auto z-40 group"
+          class="absolute -right-3 sm:-right-1.5 top-0 bottom-0 w-8 sm:w-4 cursor-col-resize pointer-events-auto z-40 group"
           @mousedown="startDrag('end', $event)"
+          @touchstart.prevent="startDragTouch('end', $event)"
         >
-          <div class="absolute right-1.5 top-1 bottom-1 w-1.5 rounded-r-md bg-primary group-hover:bg-primary/80 transition-colors" />
+          <div class="absolute right-3 sm:right-1.5 top-1 bottom-1 w-1.5 rounded-r-md bg-primary group-hover:bg-primary/80 transition-colors" />
         </div>
       </div>
 

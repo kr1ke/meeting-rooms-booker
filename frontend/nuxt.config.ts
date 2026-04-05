@@ -13,7 +13,21 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
+      title: 'BookRoom',
+      titleTemplate: '%s — BookRoom',
+      htmlAttrs: { lang: 'ru' },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Система бронирования переговорных комнат для вашей команды' },
+        { property: 'og:title', content: 'BookRoom — бронирование переговорных' },
+        { property: 'og:description', content: 'Планируйте встречи и управляйте ресурсами офиса' },
+        { property: 'og:type', content: 'website' },
+        { name: 'theme-color', content: 'hsl(25, 80%, 52%)' },
+      ],
       link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         {
           rel: 'preconnect',
           href: 'https://fonts.googleapis.com',

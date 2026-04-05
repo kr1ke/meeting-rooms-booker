@@ -3,6 +3,7 @@ import { Plus } from 'lucide-vue-next'
 
 // Страница управления комнатами, доступна только администраторам
 definePageMeta({ middleware: ['auth', 'role'] })
+useHead({ title: 'Управление комнатами' })
 
 const { fetchRooms, createRoom, updateRoom, deleteRoom } = useRooms()
 const rooms = ref<any[]>([])
@@ -51,19 +52,19 @@ onMounted(load)
 
 <template>
   <div class="animate-fade-in">
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold">Управление комнатами</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold">Управление комнатами</h1>
         <p class="text-muted-foreground text-sm mt-1">Добавляйте и редактируйте переговорки</p>
       </div>
-      <Button @click="openCreate" class="gap-2 font-semibold">
+      <Button @click="openCreate" class="gap-2 font-semibold w-full sm:w-auto">
         <Plus class="h-4 w-4" />
         Добавить комнату
       </Button>
     </div>
 
-    <Card class="shadow-sm border-0">
-      <Table>
+    <Card class="shadow-sm border-0 overflow-x-auto">
+      <Table class="min-w-[600px]">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead class="font-semibold">Название</TableHead>

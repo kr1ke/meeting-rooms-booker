@@ -2,6 +2,7 @@
 import { DoorOpen } from 'lucide-vue-next'
 
 definePageMeta({ middleware: ['auth'] })
+useHead({ title: 'Переговорки' })
 
 const { fetchRooms } = useRooms()
 const rooms = ref<any[]>([])

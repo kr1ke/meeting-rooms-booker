@@ -2,6 +2,7 @@
 import { CalendarDays, CalendarOff } from 'lucide-vue-next'
 
 definePageMeta({ middleware: ['auth'] })
+useHead({ title: 'Мои брони' })
 
 const { fetchMyBookings, cancelBooking } = useBookings()
 const bookings = ref<any[]>([])

@@ -10,14 +10,28 @@ const room = ref<any>(null)
 const loading = ref(true)
 const error = ref('')
 
+// Динамический тайтл и хлебная крошка
+const roomTitle = ref('Переговорка')
+useHead({ title: roomTitle })
+const breadcrumbLabel = useState('roomBreadcrumb', () => '')
+
 onMounted(async () => {
   try {
     room.value = await fetchRoom(route.params.id as string)
+    if (room.value?.name) {
+      roomTitle.value = room.value.name
+      breadcrumbLabel.value = room.value.name
+    }
   } catch (e: any) {
     error.value = e.data?.detail || 'Не удалось загрузить комнату'
   } finally {
     loading.value = false
   }
+})
+
+// Сбрасываем при уходе со страницы
+onUnmounted(() => {
+  breadcrumbLabel.value = ''
 })
 </script>
 
@@ -46,8 +60,8 @@ onMounted(async () => {
       <!-- Шапка: название + мета + оборудование -->
       <div class="flex items-start justify-between gap-4">
         <div>
-          <div class="flex items-center gap-3 mb-2">
-            <h1 class="text-2xl font-bold">{{ room.name }}</h1>
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+            <h1 class="text-xl sm:text-2xl font-bold">{{ room.name }}</h1>
             <Badge
               v-if="room.requires_approval"
               class="shrink-0 bg-amber-50 text-amber-700 border border-amber-200 text-xs"
@@ -55,7 +69,7 @@ onMounted(async () => {
               Требует подтверждения
             </Badge>
           </div>
-          <div class="flex items-center gap-6 text-sm text-muted-foreground">
+          <div class="flex flex-wrap items-center gap-3 sm:gap-6 text-sm text-muted-foreground">
             <span class="flex items-center gap-1.5">
               <MapPin class="h-4 w-4 text-primary/70" />
               Этаж {{ room.floor }}

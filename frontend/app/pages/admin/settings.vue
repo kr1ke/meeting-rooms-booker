@@ -3,6 +3,7 @@ import { CheckCircle } from 'lucide-vue-next'
 
 // Страница настроек бронирования для администратора
 definePageMeta({ middleware: ['auth', 'role'] })
+useHead({ title: 'Настройки' })
 
 const form = ref({
   max_duration_minutes: 120,

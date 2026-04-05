@@ -3,6 +3,7 @@ import { Plus } from 'lucide-vue-next'
 
 // Страница управления пользователями для администратора
 definePageMeta({ middleware: ['auth', 'role'] })
+useHead({ title: 'Пользователи' })
 
 const users = ref<any[]>([])
 const departments = ref<any[]>([])
@@ -79,19 +80,19 @@ onMounted(async () => {
 
 <template>
   <div class="animate-fade-in">
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold">Пользователи</h1>
         <p class="text-muted-foreground text-sm mt-1">Управление ролями и доступом</p>
       </div>
-      <Button @click="showAddDialog = true" class="gap-2">
+      <Button @click="showAddDialog = true" class="gap-2 w-full sm:w-auto">
         <Plus class="h-4 w-4" />
         Добавить пользователя
       </Button>
     </div>
 
-    <Card class="shadow-none border">
-      <Table>
+    <Card class="shadow-none border overflow-x-auto">
+      <Table class="min-w-[640px]">
         <TableHeader>
           <TableRow class="hover:bg-transparent">
             <TableHead class="font-semibold">Имя</TableHead>

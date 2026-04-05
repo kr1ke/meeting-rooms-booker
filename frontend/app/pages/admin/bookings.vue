@@ -3,6 +3,7 @@ import { CalendarOff } from 'lucide-vue-next'
 
 // Страница всех бронирований для администратора
 definePageMeta({ middleware: ['auth', 'role'] })
+useHead({ title: 'Все брони' })
 
 const { fetchAllBookings, cancelBooking, approveBooking, rejectBooking } = useBookings()
 const bookings = ref<any[]>([])

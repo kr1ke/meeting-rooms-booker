@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Страница регистрации нового пользователя
 definePageMeta({ layout: 'auth' })
+useHead({ title: 'Регистрация' })
 
 const { register } = useAuth()
 const name = ref('')
@@ -106,7 +107,7 @@ async function onSubmit() {
           <SelectTrigger class="h-11 transition-shadow duration-200 focus:ring-2 focus:ring-primary/30">
             <SelectValue placeholder="Выберите отдел" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" class="max-h-48">
             <SelectItem v-for="d in departments" :key="d.id" :value="d.id">
               {{ d.name }}
             </SelectItem>

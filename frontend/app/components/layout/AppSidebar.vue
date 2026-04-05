@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {
-  LayoutDashboard, DoorOpen, CalendarDays, Settings, Users, Bookmark, Plus
+  LayoutDashboard, DoorOpen, CalendarDays, Settings, Users, Bookmark, Plus, X
 } from 'lucide-vue-next'
 
 const { store } = useAuth()
 const route = useRoute()
+const sidebarOpen = useState('sidebarOpen', () => false)
 
 const mainLinks = [
   { to: '/', label: 'Дашборд', icon: LayoutDashboard },
@@ -23,18 +24,43 @@ function isActive(path: string) {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
 }
+
+// Закрытие при переходе на новую страницу
+watch(() => route.path, () => {
+  sidebarOpen.value = false
+})
 </script>
 
 <template>
-  <aside class="w-64 h-screen fixed top-0 left-0 p-4 flex flex-col sidebar-bg overflow-y-auto z-40">
-    <!-- Логотип -->
-    <div class="flex items-center gap-3 mb-6 px-3 pt-2">
-      <div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
-        <Bookmark class="h-5 w-5 text-orange-300" />
+  <!-- Оверлей для мобильных -->
+  <Transition name="fade">
+    <div
+      v-if="sidebarOpen"
+      class="fixed inset-0 bg-black/40 z-40 lg:hidden"
+      @click="sidebarOpen = false"
+    />
+  </Transition>
+
+  <aside
+    class="w-64 h-screen fixed top-0 left-0 p-4 flex flex-col sidebar-bg overflow-y-auto z-50 transition-transform duration-200 ease-out"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+  >
+    <!-- Логотип + кнопка закрытия (мобильная) -->
+    <div class="flex items-center justify-between mb-6 px-3 pt-2">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
+          <Bookmark class="h-5 w-5 text-orange-300" />
+        </div>
+        <span class="text-lg font-bold text-white tracking-tight">
+          BookRoom
+        </span>
       </div>
-      <span class="text-lg font-bold text-white tracking-tight">
-        BookRoom
-      </span>
+      <button
+        class="lg:hidden h-8 w-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+        @click="sidebarOpen = false"
+      >
+        <X class="h-5 w-5" />
+      </button>
     </div>
 
     <!-- CTA — бронирование -->
@@ -89,3 +115,14 @@ function isActive(path: string) {
     </div>
   </aside>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

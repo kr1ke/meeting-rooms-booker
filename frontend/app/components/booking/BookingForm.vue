@@ -153,11 +153,11 @@ async function onSubmit() {
           </Label>
 
           <!-- Ввод начала и конца -->
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <Input
               v-model="startTime"
               type="time"
-              class="w-[7.5rem] tabular-nums text-center"
+              class="w-[7rem] sm:w-[7.5rem] tabular-nums text-center"
               placeholder="09:00"
               min="08:00"
               max="20:00"
@@ -166,7 +166,7 @@ async function onSubmit() {
             <Input
               v-model="endTime"
               type="time"
-              class="w-[7.5rem] tabular-nums text-center"
+              class="w-[7rem] sm:w-[7.5rem] tabular-nums text-center"
               placeholder="10:00"
               min="08:00"
               max="20:00"

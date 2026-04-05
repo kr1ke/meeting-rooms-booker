@@ -2,6 +2,7 @@
 import { CalendarDays, DoorOpen, ArrowRight, CalendarOff, Clock, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 definePageMeta({ middleware: ['auth'] })
+useHead({ title: 'Дашборд' })
 
 const { store } = useAuth()
 const { fetchMyBookings } = useBookings()
@@ -125,17 +126,27 @@ onMounted(async () => {
 
 <template>
   <div class="animate-fade-in">
+    <!-- CTA мобильная — видна только на малых экранах -->
+    <Button
+      @click="navigateTo('/rooms')"
+      class="w-full font-semibold gap-2 mb-6 md:hidden"
+    >
+      <DoorOpen class="h-4 w-4" />
+      Забронировать переговорку
+      <ArrowRight class="h-4 w-4" />
+    </Button>
+
     <!-- Приветствие -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-semibold mb-1">
+    <div class="mb-6 sm:mb-8">
+      <h1 class="text-xl sm:text-2xl font-semibold mb-1">
         {{ store.user?.name }}
       </h1>
-      <p class="text-muted-foreground text-sm">Ваши бронирования и переговорки</p>
+      <p class="text-muted-foreground text-sm hidden sm:block">Ваши бронирования и переговорки</p>
     </div>
 
     <!-- Загруженность переговорок — полноширинный таймлайн -->
-    <div class="mb-8">
-      <div class="flex items-center gap-3 mb-4">
+    <div class="mb-6 sm:mb-8">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
         <h2 class="text-base font-semibold">Загруженность</h2>
         <div class="flex items-center gap-1">
           <button
@@ -167,10 +178,11 @@ onMounted(async () => {
         Нет комнат для отображения
       </div>
 
-      <div class="border border-border/60 rounded-lg overflow-hidden">
+      <div class="border border-border/60 rounded-lg overflow-x-auto">
+        <div class="min-w-[600px]">
         <!-- Шкала часов -->
         <div class="flex border-b border-border/40 bg-muted/20">
-          <div class="w-28 shrink-0" />
+          <div class="w-20 sm:w-28 shrink-0" />
           <div class="flex-1 relative h-7">
             <span
               v-for="h in hourLabels"
@@ -193,7 +205,7 @@ onMounted(async () => {
           <!-- Название комнаты -->
           <NuxtLink
             :to="`/rooms/${room.room_id}`"
-            class="w-28 shrink-0 px-3 py-2.5 text-sm font-medium text-foreground/80 hover:text-primary transition-colors truncate"
+            class="w-20 sm:w-28 shrink-0 px-2 sm:px-3 py-2.5 text-xs sm:text-sm font-medium text-foreground/80 hover:text-primary transition-colors truncate"
           >
             {{ room.room_name }}
           </NuxtLink>
@@ -232,6 +244,7 @@ onMounted(async () => {
               :style="{ left: nowPercent + '%' }"
             />
           </div>
+        </div>
         </div>
       </div>
     </div>

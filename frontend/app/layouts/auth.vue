@@ -31,8 +31,8 @@
     </div>
 
     <!-- Правая панель с формой -->
-    <div class="flex-1 flex items-center justify-center bg-secondary md:bg-background px-4 py-12 md:px-8">
-      <div class="w-full max-w-sm animate-fade-in">
+    <div class="flex-1 flex items-center justify-center bg-secondary md:bg-background px-4 py-12 md:px-8 overflow-y-auto">
+      <div class="w-full max-w-sm animate-fade-in my-auto">
         <slot />
       </div>
     </div>
