@@ -11,15 +11,13 @@ const loading = ref(true)
 const error = ref('')
 
 // Динамический тайтл и хлебная крошка
-const roomTitle = ref('Переговорка')
-useHead({ title: roomTitle })
 const breadcrumbLabel = useState('roomBreadcrumb', () => '')
+useHead({ title: computed(() => breadcrumbLabel.value || 'Переговорка') })
 
 onMounted(async () => {
   try {
     room.value = await fetchRoom(route.params.id as string)
     if (room.value?.name) {
-      roomTitle.value = room.value.name
       breadcrumbLabel.value = room.value.name
     }
   } catch (e: any) {

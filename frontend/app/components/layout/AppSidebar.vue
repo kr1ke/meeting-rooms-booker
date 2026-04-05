@@ -27,7 +27,7 @@ function isActive(path: string) {
 
 // Закрытие при переходе на новую страницу
 watch(() => route.path, () => {
-  sidebarOpen.value = false
+  if (sidebarOpen.value) sidebarOpen.value = false
 })
 </script>
 

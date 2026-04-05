@@ -186,18 +186,20 @@ function onDragTouch(e: TouchEvent) {
   applyDrag(pointerToMinutes(e.touches[0].clientX))
 }
 
-function stopDrag() {
+function finishDrag() {
   dragging.value = null
   justDragged = true
   requestAnimationFrame(() => { justDragged = false })
+}
+
+function stopDrag() {
+  finishDrag()
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
 
 function stopDragTouch() {
-  dragging.value = null
-  justDragged = true
-  requestAnimationFrame(() => { justDragged = false })
+  finishDrag()
   document.removeEventListener('touchmove', onDragTouch)
   document.removeEventListener('touchend', stopDragTouch)
 }
