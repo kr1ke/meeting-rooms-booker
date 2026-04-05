@@ -32,16 +32,18 @@ onMounted(() => {
       <div v-if="store.items.length === 0" class="p-6 text-sm text-muted-foreground text-center">
         Нет уведомлений
       </div>
-      <DropdownMenuItem
-        v-for="n in store.items.slice(0, 10)"
-        :key="n.id"
-        class="flex flex-col items-start gap-1 p-3 cursor-pointer"
-        :class="n.is_read ? 'opacity-50' : 'bg-primary/5'"
-        @click="markAsRead(n.id)"
-      >
-        <span class="text-sm leading-snug">{{ n.message }}</span>
-        <span class="text-xs text-muted-foreground">{{ new Date(n.created_at).toLocaleString('ru') }}</span>
-      </DropdownMenuItem>
+      <div v-else class="max-h-80 overflow-y-auto">
+        <DropdownMenuItem
+          v-for="n in store.items.slice(0, 20)"
+          :key="n.id"
+          class="flex flex-col items-start gap-1 p-3 cursor-pointer"
+          :class="n.is_read ? 'opacity-50' : 'bg-primary/5'"
+          @click="markAsRead(n.id)"
+        >
+          <span class="text-sm leading-snug">{{ n.message }}</span>
+          <span class="text-xs text-muted-foreground">{{ new Date(n.created_at).toLocaleString('ru') }}</span>
+        </DropdownMenuItem>
+      </div>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>

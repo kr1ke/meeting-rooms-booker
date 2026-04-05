@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  LayoutDashboard, DoorOpen, CalendarDays, Settings, Users, Bookmark
+  LayoutDashboard, DoorOpen, CalendarDays, Settings, Users, Bookmark, Plus
 } from 'lucide-vue-next'
 
 const { store } = useAuth()
@@ -36,6 +36,15 @@ function isActive(path: string) {
         BookRoom
       </span>
     </div>
+
+    <!-- CTA — бронирование -->
+    <NuxtLink
+      to="/rooms"
+      class="flex items-center justify-center gap-2 mx-1 mb-5 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
+    >
+      <Plus class="h-4 w-4" />
+      Забронировать
+    </NuxtLink>
 
     <!-- Навигация -->
     <nav class="flex-1 space-y-1">
