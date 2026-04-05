@@ -94,11 +94,9 @@ const formattedDate = _now.toLocaleDateString('ru', {
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button variant="ghost" class="flex items-center gap-2 rounded-lg hover:bg-primary/5 px-2 sm:px-3">
-            <Avatar class="h-8 w-8 bg-transparent">
-              <AvatarFallback class="text-sm font-semibold bg-primary/10 text-primary">
-                {{ store.user?.name?.charAt(0) }}
-              </AvatarFallback>
-            </Avatar>
+            <span class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="text-sm font-semibold text-primary leading-none">{{ store.user?.name?.charAt(0) }}</span>
+            </span>
             <span class="text-sm font-medium hidden sm:inline">{{ store.user?.name }}</span>
           </Button>
         </DropdownMenuTrigger>
