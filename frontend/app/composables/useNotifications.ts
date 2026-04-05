@@ -1,3 +1,5 @@
+import { useNotificationsStore } from '~/stores/notifications'
+
 export function useNotifications() {
   const store = useNotificationsStore()
 
