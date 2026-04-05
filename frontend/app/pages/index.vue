@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, DoorOpen, ArrowRight, CalendarOff, Clock, User as UserIcon } from 'lucide-vue-next'
+import { CalendarDays, DoorOpen, ArrowRight, CalendarOff, Clock, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 definePageMeta({ middleware: ['auth'] })
 
@@ -9,9 +9,53 @@ const { fetchSchedule } = useRooms()
 
 const bookings = ref<any[]>([])
 const schedule = ref<any[]>([])
+const scheduleLoading = ref(false)
+
 // Локальная дата (не UTC, чтобы не сдвигать день из-за таймзоны)
 const now = new Date()
 const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+// Выбранная дата для таймлайна (переключаемая)
+const selectedDate = ref(today)
+
+function formatLocalDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function shiftDate(offset: number) {
+  const d = new Date(selectedDate.value + 'T12:00:00')
+  d.setDate(d.getDate() + offset)
+  selectedDate.value = formatLocalDate(d)
+}
+
+// Человекопонятный заголовок даты
+const dateLabel = computed(() => {
+  if (selectedDate.value === today) return 'Сегодня'
+  const tomorrow = new Date(now)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  if (selectedDate.value === formatLocalDate(tomorrow)) return 'Завтра'
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (selectedDate.value === formatLocalDate(yesterday)) return 'Вчера'
+  const d = new Date(selectedDate.value + 'T12:00:00')
+  return d.toLocaleDateString('ru', { day: 'numeric', month: 'long', weekday: 'short' })
+})
+
+const isToday = computed(() => selectedDate.value === today)
+
+// Загрузка расписания при смене даты
+async function loadSchedule() {
+  scheduleLoading.value = true
+  try {
+    schedule.value = await fetchSchedule(selectedDate.value)
+  } catch {
+    schedule.value = []
+  } finally {
+    scheduleLoading.value = false
+  }
+}
+
+watch(selectedDate, () => loadSchedule())
 
 // Константы таймлайна (общие с BookingCalendar)
 const TIMELINE_START = 8 * 60
@@ -68,16 +112,14 @@ onUnmounted(() => {
 
 onMounted(async () => {
   // Параллельная загрузка
-  const [allBookings, roomSchedule] = await Promise.all([
+  const [allBookings] = await Promise.all([
     fetchMyBookings().catch(() => []),
-    fetchSchedule(today).catch(() => []),
+    loadSchedule(),
   ])
 
   bookings.value = allBookings.filter((b: any) =>
     b.date >= today && (b.status === 'confirmed' || b.status === 'pending')
   ).slice(0, 5)
-
-  schedule.value = roomSchedule
 })
 </script>
 
@@ -92,8 +134,38 @@ onMounted(async () => {
     </div>
 
     <!-- Загруженность переговорок — полноширинный таймлайн -->
-    <div v-if="schedule.length > 0" class="mb-8">
-      <h2 class="text-base font-semibold mb-4">Загруженность сегодня</h2>
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <h2 class="text-base font-semibold">Загруженность</h2>
+        <div class="flex items-center gap-1">
+          <button
+            @click="shiftDate(-1)"
+            class="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <ChevronLeft class="h-4 w-4" />
+          </button>
+          <button
+            @click="selectedDate = today"
+            class="px-2.5 py-1 rounded-md text-sm font-medium transition-colors min-w-[5.5rem] text-center"
+            :class="isToday
+              ? 'bg-primary/10 text-primary'
+              : 'text-foreground hover:bg-muted'"
+          >
+            {{ dateLabel }}
+          </button>
+          <button
+            @click="shiftDate(1)"
+            class="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          >
+            <ChevronRight class="h-4 w-4" />
+          </button>
+        </div>
+        <div v-if="scheduleLoading" class="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+
+      <div v-if="schedule.length === 0 && !scheduleLoading" class="text-sm text-muted-foreground py-4">
+        Нет комнат для отображения
+      </div>
 
       <div class="border border-border/60 rounded-lg overflow-hidden">
         <!-- Шкала часов -->
@@ -153,9 +225,9 @@ onMounted(async () => {
               </span>
             </div>
 
-            <!-- Индикатор «сейчас» -->
+            <!-- Индикатор «сейчас» (только для сегодня) -->
             <div
-              v-if="nowPercent !== null"
+              v-if="isToday && nowPercent !== null"
               class="absolute top-0 bottom-0 w-0.5 bg-destructive/50 pointer-events-none"
               :style="{ left: nowPercent + '%' }"
             />
