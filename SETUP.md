@@ -1,4 +1,4 @@
-Что должно быть:
+### Что должно быть:
 
 **Claude Code** — запускать командой `claude --model claude-opus-4-6 --effort max --dangerously-skip-permissions`
 - `Opus 4.6` — последняя модель
