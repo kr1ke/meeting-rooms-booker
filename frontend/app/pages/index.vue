@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, DoorOpen, ArrowRight, CalendarOff, Clock, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { CalendarDays, DoorOpen, ArrowRight, CalendarOff, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 definePageMeta({ middleware: ['auth'] })
 useHead({ title: 'Дашборд' })
@@ -56,7 +56,10 @@ async function loadSchedule() {
   }
 }
 
-watch(selectedDate, () => loadSchedule())
+watch(selectedDate, () => {
+  activeBooking.value = null  // закрываем попап деталей при смене даты
+  loadSchedule()
+})
 
 // Константы таймлайна (общие с BookingCalendar)
 const TIMELINE_START = 8 * 60
@@ -83,33 +86,31 @@ const nowPercent = computed(() => {
   return timeToPercent(mins)
 })
 
-// Попап деталей бронирования
-const activeBooking = ref<{ title: string; user_name: string; start_time: string; end_time: string; room_name: string; x: number; y: number } | null>(null)
+// Попап деталей бронирования. Контракт такой же, как в BookingDetailPopup:
+// открыт ⇔ activeBooking !== null. Закрытие по клику вне и Escape обрабатывает сам попап.
+const activeBooking = ref<{
+  booking: { title: string; user_name: string; start_time: string; end_time: string }
+  roomName: string
+  x: number
+  y: number
+} | null>(null)
 
+// Клик по блоку бронирования на таймлайне комнаты. stopPropagation обязателен —
+// иначе document listener внутри BookingDetailPopup закроет попап тем же кликом.
 function showBookingDetail(b: any, roomName: string, e: MouseEvent) {
   e.stopPropagation()
   activeBooking.value = {
-    title: b.title,
-    user_name: b.user_name,
-    start_time: b.start_time,
-    end_time: b.end_time,
-    room_name: roomName,
+    booking: {
+      title: b.title,
+      user_name: b.user_name,
+      start_time: b.start_time,
+      end_time: b.end_time,
+    },
+    roomName,
     x: e.clientX,
     y: e.clientY,
   }
 }
-
-function hideBookingDetail() {
-  activeBooking.value = null
-}
-
-// Закрытие по клику вне
-onMounted(() => {
-  document.addEventListener('click', hideBookingDetail)
-})
-onUnmounted(() => {
-  document.removeEventListener('click', hideBookingDetail)
-})
 
 onMounted(async () => {
   // Параллельная загрузка
@@ -249,31 +250,14 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Попап деталей бронирования -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="activeBooking"
-          class="fixed z-50 bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px] max-w-[280px]"
-          :style="{ top: (activeBooking.y + 8) + 'px', left: activeBooking.x + 'px', transform: 'translateX(-50%)' }"
-          @click.stop
-        >
-          <p class="font-semibold text-sm text-foreground mb-1.5">{{ activeBooking.title }}</p>
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-            <UserIcon class="h-3 w-3 shrink-0" />
-            {{ activeBooking.user_name }}
-          </div>
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
-            <DoorOpen class="h-3 w-3 shrink-0" />
-            {{ activeBooking.room_name }}
-          </div>
-          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock class="h-3 w-3 shrink-0" />
-            {{ activeBooking.start_time }} – {{ activeBooking.end_time }}
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <!-- Попап деталей бронирования — общий компонент -->
+    <BookingDetailPopup
+      :booking="activeBooking?.booking ?? null"
+      :room-name="activeBooking?.roomName"
+      :x="activeBooking?.x ?? 0"
+      :y="activeBooking?.y ?? 0"
+      @close="activeBooking = null"
+    />
 
     <div class="grid gap-6 md:grid-cols-2">
       <!-- Ближайшие брони -->

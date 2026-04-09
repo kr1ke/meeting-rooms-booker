@@ -26,6 +26,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:startTime': [value: string]
   'update:endTime': [value: string]
+  'booking-click': [payload: {
+    booking: { title: string; user_name: string; start_time: string; end_time: string }
+    x: number
+    y: number
+  }]
 }>()
 
 const TIMELINE_START = 8 * 60
@@ -261,6 +266,42 @@ function handleMouseLeave() {
   if (!dragging.value) hoverMinutes.value = null
 }
 
+// Клик / тап по блоку существующего бронирования.
+// Защита: не срабатывает во время drag и сразу после (justDragged).
+// stopPropagation критичен — иначе handleTimelineClick тоже сработает,
+// а также document listener в BookingDetailPopup закроет попап.
+function handleBookingBlockClick(block: typeof bookingBlocks.value[number], e: MouseEvent) {
+  if (dragging.value || justDragged) return
+  e.stopPropagation()
+  emit('booking-click', {
+    booking: {
+      title: block.title,
+      user_name: block.user_name,
+      start_time: block.start_time,
+      end_time: block.end_time,
+    },
+    x: e.clientX,
+    y: e.clientY,
+  })
+}
+
+function handleBookingBlockTouch(block: typeof bookingBlocks.value[number], e: TouchEvent) {
+  if (dragging.value || justDragged) return
+  const touch = e.changedTouches[0]
+  if (!touch) return
+  e.stopPropagation()
+  emit('booking-click', {
+    booking: {
+      title: block.title,
+      user_name: block.user_name,
+      start_time: block.start_time,
+      end_time: block.end_time,
+    },
+    x: touch.clientX,
+    y: touch.clientY,
+  })
+}
+
 const hoverPercent = computed(() => {
   if (hoverMinutes.value === null) return null
   return timeToPercent(hoverMinutes.value)
@@ -312,12 +353,14 @@ const hoverTimeLabel = computed(() => {
         :style="{ left: timeToPercent(m) + '%' }"
       />
 
-      <!-- Блоки существующих бронирований -->
+      <!-- Блоки существующих бронирований (кликабельные — показывают попап) -->
       <div
         v-for="(block, i) in bookingBlocks"
         :key="i"
-        class="absolute top-1 bottom-1 rounded-md bg-muted border border-border/80 flex items-center overflow-hidden pointer-events-none z-10"
+        class="absolute top-1 bottom-1 rounded-md bg-muted border border-border/80 flex items-center overflow-hidden cursor-pointer hover:bg-muted/80 hover:border-border transition-colors z-10"
         :style="{ left: block.left + '%', width: block.width + '%' }"
+        @click="handleBookingBlockClick(block, $event)"
+        @touchend.prevent="handleBookingBlockTouch(block, $event)"
       >
         <div class="w-1 self-stretch bg-foreground/20 rounded-l-md shrink-0" />
         <div class="truncate min-w-0 px-1.5">
