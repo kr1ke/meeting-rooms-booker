@@ -26,7 +26,11 @@ const activeBooking = ref<{
 
 // Обработчик клика по чужой брони — показывает попап
 // (позиционирование — по координатам курсора).
-function onBookingClick(payload: { booking: any; x: number; y: number }) {
+function onBookingClick(payload: {
+  booking: { title: string; user_name: string; start_time: string; end_time: string }
+  x: number
+  y: number
+}) {
   activeBooking.value = payload
 }
 
