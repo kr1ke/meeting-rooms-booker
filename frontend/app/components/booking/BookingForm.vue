@@ -16,6 +16,20 @@ const error = ref('')
 const loading = ref(false)
 const success = ref(false)
 
+// Активный попап деталей занятой брони.
+// Открывается при клике на блок бронирования в BookingCalendar.
+const activeBooking = ref<{
+  booking: { title: string; user_name: string; start_time: string; end_time: string }
+  x: number
+  y: number
+} | null>(null)
+
+// Обработчик клика по чужой брони — показывает попап
+// (позиционирование — по координатам курсора).
+function onBookingClick(payload: { booking: any; x: number; y: number }) {
+  activeBooking.value = payload
+}
+
 // Данные расписания (слоты + бронирования)
 const slots = ref<any[]>([])
 const bookings = ref<any[]>([])
@@ -142,6 +156,15 @@ async function onSubmit() {
             :end-time="endTime"
             @update:start-time="startTime = $event"
             @update:end-time="endTime = $event"
+            @booking-click="onBookingClick"
+          />
+
+          <!-- Попап деталей занятой брони (без названия комнаты — мы уже на странице комнаты) -->
+          <BookingDetailPopup
+            :booking="activeBooking?.booking ?? null"
+            :x="activeBooking?.x ?? 0"
+            :y="activeBooking?.y ?? 0"
+            @close="activeBooking = null"
           />
         </div>
 
