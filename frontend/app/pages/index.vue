@@ -56,7 +56,10 @@ async function loadSchedule() {
   }
 }
 
-watch(selectedDate, () => loadSchedule())
+watch(selectedDate, () => {
+  activeBooking.value = null  // закрываем попап деталей при смене даты
+  loadSchedule()
+})
 
 // Константы таймлайна (общие с BookingCalendar)
 const TIMELINE_START = 8 * 60

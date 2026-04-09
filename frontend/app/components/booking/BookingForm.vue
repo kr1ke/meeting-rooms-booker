@@ -62,6 +62,7 @@ async function loadSchedule() {
 watch(date, () => {
   startTime.value = ''
   endTime.value = ''
+  activeBooking.value = null  // закрываем попап деталей при смене даты
   loadSchedule()
 }, { immediate: true })
 
