@@ -27,7 +27,9 @@ function openCreate() {
 
 function openEdit(room: any) {
   editingRoom.value = room
-  form.value = { ...room }
+  // Глубокая копия equipment, чтобы EquipmentPicker не мутировал исходный объект
+  // в массиве rooms (он использует { ...props.modelValue, delete ... }).
+  form.value = { ...room, equipment: { ...(room.equipment || {}) } }
   showDialog.value = true
 }
 
@@ -119,8 +121,12 @@ onMounted(load)
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <input type="checkbox" id="approval" v-model="form.requires_approval" class="rounded border-input" />
+            <input type="checkbox" id="approval" v-model="form.requires_approval" class="rounded border-input h-4 w-4" />
             <Label for="approval">Требует подтверждения</Label>
+          </div>
+          <div class="space-y-2">
+            <Label>Оборудование</Label>
+            <RoomEquipmentPicker v-model="form.equipment" />
           </div>
           <Button type="submit" class="w-full font-semibold">Сохранить</Button>
         </form>
