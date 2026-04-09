@@ -2,6 +2,10 @@
 >
 > **Главное в этом репо.** Полный список инструментов, плагинов и MCP, которые я использую в Claude Code. С готовыми командами установки.
 
+![Claude Code Setup](./docs/claude-code-setup.png)
+
+> 💡 Редактируемый исходник схемы: [`claude-code-setup.excalidraw`](./docs/claude-code-setup.excalidraw) — скачай файл и открой на [excalidraw.com](https://excalidraw.com) (File → Open) или в VS Code через расширение *Excalidraw*.
+
 ---
 
 # BookRoom — Система бронирования переговорных
@@ -24,7 +28,7 @@ docker compose up --build
 
 | Email | Пароль | Роль |
 |---|---|---|
-| admin@company.com | admin123 | Администратор |
+| admin@company.com |    | Администратор |
 | user@company.com | user123 | Сотрудник |
 | manager@company.com | manager123 | Сотрудник |
 
