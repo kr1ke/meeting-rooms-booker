@@ -33,7 +33,7 @@ export const EQUIPMENT_TYPES: readonly EquipmentType[] = [
     icon: Video,
     badgeClasses: 'bg-violet-50 text-violet-700 border-violet-200',
   },
-] as const
+]
 
 // Найти тип по ключу. Возвращает undefined, если тип неизвестен —
 // потребитель должен уметь показать fallback.
