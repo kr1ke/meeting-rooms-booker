@@ -79,10 +79,10 @@ onUnmounted(() => {
           {{ roomName }}
         </div>
 
-        <!-- Время -->
+        <!-- Время. Защитно срезаем секунды — разные API возвращают либо HH:MM, либо HH:MM:SS. -->
         <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock class="h-3 w-3 shrink-0" />
-          {{ booking.start_time }} – {{ booking.end_time }}
+          {{ booking.start_time.slice(0, 5) }} – {{ booking.end_time.slice(0, 5) }}
         </div>
       </div>
     </Transition>
