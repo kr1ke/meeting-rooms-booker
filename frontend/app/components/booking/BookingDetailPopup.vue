@@ -60,7 +60,7 @@ onUnmounted(() => {
       <div
         v-if="booking"
         ref="popupRef"
-        class="fixed z-50 bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px] max-w-[280px]"
+        class="fixed z-[60] bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px] max-w-[280px]"
         :style="{ top: (y + 8) + 'px', left: x + 'px', transform: 'translateX(-50%)' }"
         @click.stop
       >
